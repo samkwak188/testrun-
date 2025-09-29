@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RandomChat - Talk to Strangers</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { 
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        background: #000;
+        color: #fff;
+        height: 100vh;
+        overflow: hidden;
+      }
+      
+      /* Header */
+      header { 
+        background: rgba(0,0,0,0.95);
+        backdrop-filter: blur(10px);
+        padding: 12px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #333;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 200;
+      }
+      .logo { 
+        display: flex; 
+        align-items: center; 
+        gap: 10px;
+        font-size: 20px;
+        font-weight: 700;
+      }
+      .status-badge { 
+        display: flex; 
+        align-items: center; 
+        gap: 6px;
+        background: rgba(74, 222, 128, 0.1);
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        color: #4ade80;
+      }
+      .status-dot { 
+        width: 6px; 
+        height: 6px; 
+        background: #4ade80; 
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(1.2); }
+      }
+
+      /* Main Video Area - Split Screen */
+      main { 
+        display: flex;
+        height: 100vh;
+        padding-top: 49px;
+        background: #000;
+      }
+      
+      /* Video Containers - Equal Split */
+      .video-panel {
+        flex: 1;
+        position: relative;
+        background: #000;
+        border-right: 1px solid #222;
+      }
+      .video-panel:last-child {
+        border-right: none;
+      }
+
+      video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        background: #000;
+      }
+
+      /* Video Labels */
+      .video-label {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        background: rgba(0,0,0,0.7);
+        backdrop-filter: blur(10px);
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .video-label.you {
+        background: rgba(102, 126, 234, 0.7);
+      }
+      .video-label.stranger {
+        background: rgba(239, 68, 68, 0.7);
+      }
+
+      /* Status Indicators on Videos */
+      .status-indicator {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        background: rgba(0,0,0,0.7);
+        backdrop-filter: blur(10px);
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        z-index: 10;
+      }
+      .status-indicator.connected {
+        background: rgba(34, 197, 94, 0.7);
+        color: #4ade80;
+      }
+      .status-indicator.searching {
+        background: rgba(251, 146, 60, 0.7);
+        color: #fb923c;
+        animation: blink 1.5s infinite;
+      }
+      @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+
+      /* Status Overlays */
+      .video-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0,0,0,0.7);
+        backdrop-filter: blur(10px);
+        z-index: 5;
+        gap: 16px;
+      }
+      .video-overlay.hidden { display: none; }
+      .overlay-icon { 
+        font-size: 64px; 
+        animation: bounce 1.5s ease-in-out infinite;
+      }
+      @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-15px); }
+      }
+      .overlay-text {
+        font-size: 20px;
+        font-weight: 600;
+        text-align: center;
+      }
+      .overlay-subtext {
+        font-size: 14px;
+        opacity: 0.8;
+        text-align: center;
+        max-width: 300px;
+      }
+
+      /* Bottom Control Bar */
+      .control-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 24px;
+        background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 70%, transparent 100%);
+        backdrop-filter: blur(10px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 16px;
+        z-index: 150;
+      }
+      
+      .control-btn {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        position: relative;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      }
+      .control-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+      }
+      .control-btn:active {
+        transform: scale(0.95);
+      }
+      .control-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        transform: none;
+      }
+      
+      .btn-start {
+        background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+        width: 160px;
+        border-radius: 28px;
+        font-size: 16px;
+        font-weight: 600;
+        color: white;
+        gap: 8px;
+      }
+      .btn-next {
+        background: #3b82f6;
+        color: white;
+      }
+      .btn-stop {
+        background: #ef4444;
+        color: white;
+        width: 64px;
+        height: 64px;
+      }
+      .btn-mute, .btn-video {
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(10px);
+        color: white;
+        border: 2px solid rgba(255,255,255,0.3);
+      }
+      .btn-mute.active, .btn-video.active {
+        background: #ef4444;
+        border-color: #dc2626;
+      }
+
+      /* Tooltip */
+      .tooltip {
+        position: absolute;
+        bottom: 70px;
+        background: rgba(0,0,0,0.9);
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s;
+        border: 1px solid rgba(255,255,255,0.2);
+      }
+      .control-btn:hover .tooltip {
+        opacity: 1;
+      }
+
+      /* Activity Log */
+      .log-panel {
+        position: fixed;
+        bottom: 110px;
+        left: 20px;
+        width: 300px;
+        max-height: 180px;
+        background: rgba(0,0,0,0.85);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 12px;
+        z-index: 140;
+        overflow: auto;
+        border: 1px solid rgba(255,255,255,0.1);
+      }
+      .log-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        opacity: 0.8;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+      }
+      .log-entry {
+        font-size: 11px;
+        font-family: 'Courier New', monospace;
+        padding: 4px 0;
+        opacity: 0.7;
+      }
+
+      /* Responsive - Stack vertically on mobile */
+      @media (max-width: 768px) {
+        main {
+          flex-direction: column;
+        }
+        .video-panel {
+          border-right: none;
+          border-bottom: 1px solid #222;
+        }
+        .video-panel:last-child {
+          border-bottom: none;
+        }
+        .control-bar {
+          gap: 12px;
+          padding: 16px;
+        }
+        .control-btn {
+          width: 48px;
+          height: 48px;
+          font-size: 20px;
+        }
+        .btn-start {
+          width: 120px;
+          font-size: 14px;
+        }
+        .btn-stop {
+          width: 56px;
+          height: 56px;
+        }
+        .log-panel {
+          width: calc(100% - 40px);
+          left: 20px;
+          bottom: 90px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo">🎥 RandomChat</div>
+      <div class="status-badge">
+        <div class="status-dot"></div>
+        <span id="onlineCount">Connecting...</span>
+      </div>
+    </header>
+
+    <main>
+      <!-- Your Video Panel (Left Half) -->
+      <div class="video-panel">
+        <video id="local" autoplay playsinline muted></video>
+        <div class="video-label you">👤 You</div>
+        <div class="status-indicator" id="localStatus">Camera Off</div>
+        <div class="video-overlay" id="localOverlay">
+          <div class="overlay-icon">📹</div>
+          <div class="overlay-text">Your Camera</div>
+          <div class="overlay-subtext">Click "Start" to begin</div>
+        </div>
+      </div>
+
+      <!-- Stranger's Video Panel (Right Half) -->
+      <div class="video-panel">
+        <video id="remote" autoplay playsinline></video>
+        <div class="video-label stranger">🌍 Stranger</div>
+        <div class="status-indicator searching" id="remoteStatus">Waiting...</div>
+        <div class="video-overlay" id="remoteOverlay">
+          <div class="overlay-icon">👋</div>
+          <div class="overlay-text">Waiting for Stranger</div>
+          <div class="overlay-subtext">Press Start to find someone</div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Activity Log -->
+    <div class="log-panel">
+      <div class="log-header">
+        <span>📋 Activity Log</span>
+      </div>
+      <div id="log"></div>
+    </div>
+
+    <!-- Control Bar -->
+    <div class="control-bar">
+      <button id="muteBtn" class="control-btn btn-mute" disabled>
+        <span id="muteIcon">🎤</span>
+        <div class="tooltip">Mute/Unmute</div>
+      </button>
+
+      <button id="videoBtn" class="control-btn btn-video" disabled>
+        <span id="videoIcon">📹</span>
+        <div class="tooltip">Camera On/Off</div>
+      </button>
+
+      <button id="startBtn" class="control-btn btn-start">
+        <span>🚀</span> Start
+      </button>
+
+      <button id="nextBtn" class="control-btn btn-next" disabled>
+        <span>⏭️</span>
+        <div class="tooltip">Next Stranger</div>
+      </button>
+
+      <button id="stopBtn" class="control-btn btn-stop" disabled>
+        <span>⏹️</span>
+        <div class="tooltip">End Chat</div>
+      </button>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" crossorigin="anonymous"></script>
+    <script>
+      // Elements
+      const startBtn = document.getElementById('startBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const stopBtn = document.getElementById('stopBtn');
+      const muteBtn = document.getElementById('muteBtn');
+      const videoBtn = document.getElementById('videoBtn');
+      const muteIcon = document.getElementById('muteIcon');
+      const videoIcon = document.getElementById('videoIcon');
+      const localVideo = document.getElementById('local');
+      const remoteVideo = document.getElementById('remote');
+      const localOverlay = document.getElementById('localOverlay');
+      const remoteOverlay = document.getElementById('remoteOverlay');
+      const localStatus = document.getElementById('localStatus');
+      const remoteStatus = document.getElementById('remoteStatus');
+      const onlineCount = document.getElementById('onlineCount');
+      const logEl = document.getElementById('log');
+
+      // State
+      let pc = null;
+      let localStream = null;
+      let roomId = null;
+      let peerId = null;
+      let isSearching = false;
+      let isConnected = false;
+      let isMuted = false;
+      let isVideoOff = false;
+
+      // Socket connection
+      const serverUrl = window.location.hostname === 'localhost' || window.location.hostname === ''
+        ? 'http://localhost:3001'
+        : window.location.origin;
+      const socket = io(serverUrl, { transports: ['websocket', 'polling'] });
+
+      const iceServers = [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
+      ];
+
+      // Logging
+      function log(msg) {
+        const time = new Date().toLocaleTimeString();
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        entry.textContent = `[${time}] ${msg}`;
+        logEl.insertBefore(entry, logEl.firstChild);
+        if (logEl.children.length > 20) logEl.removeChild(logEl.lastChild);
+        console.log(msg);
+      }
+
+      // UI Updates
+      function updateUI(state) {
+        if (state === 'idle') {
+          startBtn.disabled = false;
+          startBtn.innerHTML = '<span>🚀</span> Start';
+          nextBtn.disabled = true;
+          stopBtn.disabled = true;
+          muteBtn.disabled = true;
+          videoBtn.disabled = true;
+          
+          localOverlay.classList.remove('hidden');
+          localOverlay.innerHTML = '<div class="overlay-icon">📹</div><div class="overlay-text">Your Camera</div><div class="overlay-subtext">Click "Start" to begin</div>';
+          localStatus.textContent = 'Camera Off';
+          localStatus.className = 'status-indicator';
+          
+          remoteOverlay.classList.remove('hidden');
+          remoteOverlay.innerHTML = '<div class="overlay-icon">👋</div><div class="overlay-text">Waiting for Stranger</div><div class="overlay-subtext">Press Start to find someone</div>';
+          remoteStatus.textContent = 'Waiting...';
+          remoteStatus.className = 'status-indicator';
+          
+        } else if (state === 'searching') {
+          startBtn.disabled = true;
+          nextBtn.disabled = false;
+          stopBtn.disabled = false;
+          muteBtn.disabled = false;
+          videoBtn.disabled = false;
+          
+          localOverlay.classList.add('hidden');
+          localStatus.textContent = 'Camera On';
+          localStatus.className = 'status-indicator connected';
+          
+          remoteOverlay.classList.remove('hidden');
+          remoteOverlay.innerHTML = '<div class="overlay-icon">🔍</div><div class="overlay-text">Searching...</div><div class="overlay-subtext">Finding a stranger for you</div>';
+          remoteStatus.textContent = 'Searching...';
+          remoteStatus.className = 'status-indicator searching';
+          
+        } else if (state === 'matched') {
+          startBtn.disabled = true;
+          nextBtn.disabled = false;
+          stopBtn.disabled = false;
+          muteBtn.disabled = false;
+          videoBtn.disabled = false;
+          
+          localOverlay.classList.add('hidden');
+          localStatus.textContent = 'Camera On';
+          localStatus.className = 'status-indicator connected';
+          
+          remoteOverlay.classList.remove('hidden');
+          remoteOverlay.innerHTML = '<div class="overlay-icon">🤝</div><div class="overlay-text">Stranger Found!</div><div class="overlay-subtext">Connecting...</div>';
+          remoteStatus.textContent = 'Connecting...';
+          remoteStatus.className = 'status-indicator searching';
+          
+        } else if (state === 'connected') {
+          startBtn.disabled = true;
+          nextBtn.disabled = false;
+          stopBtn.disabled = false;
+          muteBtn.disabled = false;
+          videoBtn.disabled = false;
+          
+          localOverlay.classList.add('hidden');
+          localStatus.textContent = 'Camera On';
+          localStatus.className = 'status-indicator connected';
+          
+          remoteOverlay.classList.add('hidden');
+          remoteStatus.textContent = '🟢 Connected';
+          remoteStatus.className = 'status-indicator connected';
+        }
+      }
+
+      // Get user media with graceful fallback
+      async function startCamera() {
+        if (localStream) return localStream;
+
+        // First, ask user permission
+        const allowMedia = confirm('This app needs camera and microphone access to work.\n\nClick OK to allow access.');
+        if (!allowMedia) {
+          log('User denied permission request');
+          alert('Camera and microphone are required to use this app.');
+          throw new Error('User denied permission');
+        }
+
+        // Try video + audio first
+        try {
+          localStream = await navigator.mediaDevices.getUserMedia({ 
+            video: { width: 1280, height: 720 }, 
+            audio: true 
+          });
+          localVideo.srcObject = localStream;
+          log('Camera and microphone enabled');
+          return localStream;
+        } catch (videoErr) {
+          log('Camera failed: ' + videoErr.message);
+          
+          // Fallback: try audio only
+          try {
+            log('Attempting audio-only mode...');
+            localStream = await navigator.mediaDevices.getUserMedia({ 
+              video: false, 
+              audio: true 
+            });
+            localVideo.srcObject = localStream;
+            
+            // Show audio-only indicator in overlay
+            log('⚠️ Audio-only mode active');
+            
+            alert('Camera not detected or denied.\n\nProceeding with microphone only.');
+            log('Audio-only mode enabled');
+            return localStream;
+          } catch (audioErr) {
+            log('Microphone also failed: ' + audioErr.message);
+            alert('Could not access camera or microphone.\n\nPlease check your device permissions and refresh.');
+            throw audioErr;
+          }
+        }
+      }
+
+      // Create peer connection
+      function createPeerConnection() {
+        if (pc) pc.close();
+        pc = new RTCPeerConnection({ iceServers });
+
+        pc.onicecandidate = (e) => {
+          if (e.candidate && roomId && peerId) {
+            socket.emit('signal', { 
+              roomId, 
+              to: peerId, 
+              data: { type: 'candidate', candidate: e.candidate } 
+            });
+          }
+        };
+
+        pc.ontrack = (e) => {
+          log('Received remote stream');
+          remoteVideo.srcObject = e.streams[0];
+          updateUI('connected');
+          isConnected = true;
+        };
+
+        pc.onconnectionstatechange = () => {
+          log(`Connection state: ${pc.connectionState}`);
+          if (pc.connectionState === 'connected') {
+            updateUI('connected');
+            isConnected = true;
+          } else if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+            log('Connection failed, try Next');
+          }
+        };
+
+        if (localStream) {
+          localStream.getTracks().forEach(track => {
+            pc.addTrack(track, localStream);
+          });
+        }
+
+        return pc;
+      }
+
+      // Clean up connection
+      function cleanup() {
+        if (pc) {
+          pc.close();
+          pc = null;
+        }
+        remoteVideo.srcObject = null;
+        roomId = null;
+        peerId = null;
+        isSearching = false;
+        isConnected = false;
+      }
+
+      // Socket events
+      socket.on('connect', () => {
+        log('Connected to server');
+        onlineCount.textContent = 'Online';
+      });
+
+      socket.on('disconnect', () => {
+        log('Disconnected from server');
+        onlineCount.textContent = 'Offline';
+      });
+
+      socket.on('matched', async (payload) => {
+        log(`Matched with stranger (${payload.role})`);
+        roomId = payload.roomId;
+        peerId = payload.peerId;
+        updateUI('matched');
+
+        await startCamera();
+        createPeerConnection();
+
+        if (payload.role === 'caller') {
+          try {
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            socket.emit('signal', { 
+              roomId, 
+              to: peerId, 
+              data: { type: 'offer', sdp: offer } 
+            });
+            log('Sent offer');
+          } catch (err) {
+            log('Error creating offer: ' + err.message);
+          }
+        }
+      });
+
+      socket.on('signal', async ({ from, data, roomId: r }) => {
+        if (!pc || r !== roomId) return;
+
+        try {
+          if (data.type === 'offer') {
+            log('Received offer');
+            await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+            socket.emit('signal', { 
+              roomId, 
+              to: from, 
+              data: { type: 'answer', sdp: answer } 
+            });
+            log('Sent answer');
+          } else if (data.type === 'answer') {
+            log('Received answer');
+            await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
+          } else if (data.type === 'candidate' && data.candidate) {
+            await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+          }
+        } catch (err) {
+          log('Signaling error: ' + err.message);
+        }
+      });
+
+      socket.on('peerLeft', () => {
+        log('Stranger disconnected');
+        cleanup();
+        updateUI('searching');
+        // Auto-find next
+        socket.emit('findMatch');
+      });
+
+      // Toggle Mute
+      muteBtn.onclick = () => {
+        if (!localStream) return;
+        isMuted = !isMuted;
+        localStream.getAudioTracks().forEach(track => {
+          track.enabled = !isMuted;
+        });
+        if (isMuted) {
+          muteIcon.textContent = '🔇';
+          muteBtn.classList.add('active');
+          log('Microphone muted');
+        } else {
+          muteIcon.textContent = '🎤';
+          muteBtn.classList.remove('active');
+          log('Microphone unmuted');
+        }
+      };
+
+      // Toggle Video
+      videoBtn.onclick = () => {
+        if (!localStream) return;
+        isVideoOff = !isVideoOff;
+        localStream.getVideoTracks().forEach(track => {
+          track.enabled = !isVideoOff;
+        });
+        if (isVideoOff) {
+          videoIcon.textContent = '📷';
+          videoBtn.classList.add('active');
+          log('Camera turned off');
+        } else {
+          videoIcon.textContent = '📹';
+          videoBtn.classList.remove('active');
+          log('Camera turned on');
+        }
+      };
+
+      // Button handlers
+      startBtn.onclick = async () => {
+        try {
+          await startCamera();
+          socket.emit('findMatch');
+          isSearching = true;
+          updateUI('searching');
+          log('Searching for stranger...');
+        } catch (err) {
+          updateUI('idle');
+        }
+      };
+
+      nextBtn.onclick = () => {
+        log('Finding next stranger...');
+        socket.emit('leave');
+        cleanup();
+        updateUI('searching');
+        socket.emit('findMatch');
+      };
+
+      stopBtn.onclick = () => {
+        log('Stopped');
+        socket.emit('leave');
+        cleanup();
+        updateUI('idle');
+      };
+
+      // Initialize
+      updateUI('idle');
+      log('✅ Ready! Click "Start" to begin');
+    </script>
+  </body>
+  </html>
+
+
