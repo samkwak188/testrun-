@@ -950,10 +950,6 @@
         <div class="tooltip">Mute/Unmute</div>
       </button>
 
-      <button id="videoBtn" class="control-btn btn-video" disabled>
-        <span id="videoIcon">📹</span>
-        <div class="tooltip">Camera On/Off</div>
-      </button>
 
       <button id="startBtn" class="control-btn btn-start">
         <span>🚀</span> Start
@@ -977,9 +973,7 @@
       const nextBtn = document.getElementById('nextBtn');
       const stopBtn = document.getElementById('stopBtn');
       const muteBtn = document.getElementById('muteBtn');
-      const videoBtn = document.getElementById('videoBtn');
       const muteIcon = document.getElementById('muteIcon');
-      const videoIcon = document.getElementById('videoIcon');
       const localVideo = document.getElementById('local');
       const remoteVideo = document.getElementById('remote');
       const localOverlay = document.getElementById('localOverlay');
@@ -999,7 +993,6 @@
       let isSearching = false;
       let isConnected = false;
       let isMuted = false;
-      let isVideoOff = false;
 
       // Socket connection
       const serverUrl = window.location.hostname === 'localhost' || window.location.hostname === ''
@@ -1141,23 +1134,24 @@
           nextBtn.disabled = false;
           stopBtn.disabled = false;
           muteBtn.disabled = false;
-          videoBtn.disabled = false;
-          
+
           localOverlay.classList.add('hidden');
           localStatus.textContent = 'Camera On';
           localStatus.className = 'status-indicator connected';
-          
+
           remoteOverlay.classList.remove('hidden');
           remoteOverlay.innerHTML = '<div class="overlay-icon">🤝</div><div class="overlay-content"><div class="overlay-title">Stranger Found!</div><div class="overlay-subtitle">Connecting...</div></div>';
           remoteStatus.textContent = 'Connecting...';
           remoteStatus.className = 'status-indicator searching';
+
+          // Enable chat as soon as matched (don't wait for video)
+          enableChat();
 
         } else if (state === 'connected') {
           startBtn.disabled = true;
           nextBtn.disabled = false;
           stopBtn.disabled = false;
           muteBtn.disabled = false;
-          videoBtn.disabled = false;
 
           localOverlay.classList.add('hidden');
           localStatus.textContent = 'Camera On';
@@ -1167,7 +1161,7 @@
           remoteStatus.textContent = '🟢 Connected';
           remoteStatus.className = 'status-indicator connected';
 
-          // Enable chat when connected
+          // Ensure chat is enabled when video connects
           enableChat();
         }
       }
@@ -1184,7 +1178,7 @@
           throw new Error('User denied permission');
         }
 
-        // Try video + audio first
+        // Camera is REQUIRED - no audio-only mode
         try {
           localStream = await navigator.mediaDevices.getUserMedia({ 
             video: { width: 1280, height: 720 }, 
@@ -1195,31 +1189,10 @@
           localVideo.volume = 0; // Double ensure no audio feedback
           log('Camera and microphone enabled');
           return localStream;
-        } catch (videoErr) {
-          log('Camera failed: ' + videoErr.message);
-          
-          // Fallback: try audio only
-          try {
-            log('Attempting audio-only mode...');
-            localStream = await navigator.mediaDevices.getUserMedia({ 
-              video: false, 
-              audio: true 
-            });
-            localVideo.srcObject = localStream;
-            localVideo.muted = true; // Ensure you never hear yourself
-            localVideo.volume = 0; // Double ensure no audio feedback
-            
-            // Show audio-only indicator in overlay
-            log('⚠️ Audio-only mode active');
-            
-            alert('Camera not detected or denied.\n\nProceeding with microphone only.');
-            log('Audio-only mode enabled');
-            return localStream;
-          } catch (audioErr) {
-            log('Microphone also failed: ' + audioErr.message);
-            alert('Could not access camera or microphone.\n\nPlease check your device permissions and refresh.');
-            throw audioErr;
-          }
+        } catch (err) {
+          log('Camera/microphone access failed: ' + err.message);
+          alert('Camera access is REQUIRED to use this app.\n\nPlease allow camera and microphone permissions and refresh the page.');
+          throw err;
         }
       }
 
@@ -1373,23 +1346,6 @@
         }
       };
 
-      // Toggle Video
-      videoBtn.onclick = () => {
-        if (!localStream) return;
-        isVideoOff = !isVideoOff;
-        localStream.getVideoTracks().forEach(track => {
-          track.enabled = !isVideoOff;
-        });
-        if (isVideoOff) {
-          videoIcon.textContent = '📷';
-          videoBtn.classList.add('active');
-          log('Camera turned off');
-        } else {
-          videoIcon.textContent = '📹';
-          videoBtn.classList.remove('active');
-          log('Camera turned on');
-        }
-      };
 
       // Button handlers
       startBtn.onclick = async () => {
@@ -1408,6 +1364,7 @@
         log('Finding next stranger...');
         socket.emit('leave');
         cleanup();
+        clearChatMessages(); // Clear chat when switching to next person
         updateUI('searching');
         socket.emit('findMatch');
       };
@@ -1416,7 +1373,7 @@
         log('Stopped');
         socket.emit('leave');
         cleanup();
-        clearChatMessages();
+        clearChatMessages(); // Clear chat when stopping
         updateUI('idle');
       };
 
