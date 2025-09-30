@@ -147,25 +147,22 @@
         }
       }
 
-      /* Main Video Area - Modern Split Screen */
+      /* Main Layout - Zoom Style: Videos + Chat Column */
       main {
-        display: flex;
+        display: grid;
+        grid-template-columns: 1fr 1fr 400px; /* Left video | Center video | Right chat */
         height: 100vh;
-        padding-top: 73px; /* Adjusted for new header height */
+        padding-top: 73px;
         background: transparent;
+        gap: 1px;
+        background: var(--border-light);
       }
 
-      /* Video Containers - Elegant Split */
+      /* Video Containers */
       .video-panel {
-        flex: 1;
         position: relative;
         background: var(--bg-secondary);
-        border-right: 1px solid var(--border-light);
         overflow: hidden;
-      }
-
-      .video-panel:last-child {
-        border-right: none;
       }
 
       .video-panel::before {
@@ -522,78 +519,239 @@
         transform: translateY(-4px);
       }
 
-      /* Elegant Activity Log */
-      .log-panel {
-        position: fixed;
-        bottom: 130px;
-        left: var(--spacing-lg);
-        width: 320px;
-        max-height: 200px;
-        background: var(--glass-bg);
-        backdrop-filter: blur(20px);
-        border: 1px solid var(--glass-border);
-        border-radius: var(--radius-lg);
-        padding: var(--spacing-md);
-        z-index: 140;
-        overflow: hidden;
-        box-shadow: var(--glass-shadow);
+      /* Chat Panel - Zoom Style */
+      .chat-panel {
+        background: var(--bg-secondary);
+        display: flex;
+        flex-direction: column;
+        border-left: 1px solid var(--border-light);
       }
 
-      .log-header {
+      .chat-header {
+        padding: var(--spacing-md) var(--spacing-lg);
+        border-bottom: 1px solid var(--border-light);
         display: flex;
         align-items: center;
         gap: var(--spacing-sm);
-        margin-bottom: var(--spacing-md);
-        font-size: 13px;
+        background: var(--bg-tertiary);
+      }
+
+      .chat-header-icon {
+        font-size: 20px;
+      }
+
+      .chat-title {
+        font-size: 15px;
         font-weight: 600;
         color: var(--text-primary);
-        padding-bottom: var(--spacing-sm);
-        border-bottom: 1px solid var(--border-light);
       }
 
-      .log-header-icon {
-        font-size: 16px;
-      }
-
-      .log-container {
-        max-height: 140px;
+      .chat-messages {
+        flex: 1;
         overflow-y: auto;
+        padding: var(--spacing-lg);
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md);
         scrollbar-width: thin;
         scrollbar-color: var(--border) transparent;
       }
 
-      .log-container::-webkit-scrollbar {
-        width: 4px;
+      .chat-messages::-webkit-scrollbar {
+        width: 6px;
       }
 
-      .log-container::-webkit-scrollbar-track {
+      .chat-messages::-webkit-scrollbar-track {
         background: transparent;
       }
 
-      .log-container::-webkit-scrollbar-thumb {
+      .chat-messages::-webkit-scrollbar-thumb {
         background: var(--border);
-        border-radius: 2px;
+        border-radius: 3px;
       }
 
-      .log-entry {
+      .chat-messages::-webkit-scrollbar-thumb:hover {
+        background: var(--border-light);
+      }
+
+      .chat-message {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-xs);
+        max-width: 85%;
+        animation: slideIn 0.2s ease;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .chat-message.you {
+        align-self: flex-end;
+      }
+
+      .chat-message.stranger {
+        align-self: flex-start;
+      }
+
+      .message-sender {
         font-size: 11px;
-        font-family: var(--font-mono);
-        padding: var(--spacing-xs) 0;
-        color: var(--text-secondary);
-        border-bottom: 1px solid rgba(30, 41, 59, 0.1);
-        line-height: 1.3;
-        transition: color 0.2s ease;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: var(--spacing-xs);
       }
 
-      .log-entry:last-child {
-        border-bottom: none;
+      .message-bubble {
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        line-height: 1.4;
+        word-wrap: break-word;
       }
 
-      .log-entry:hover {
+      .chat-message.you .message-bubble {
+        background: var(--primary);
+        color: white;
+        border-bottom-right-radius: 4px;
+      }
+
+      .chat-message.stranger .message-bubble {
+        background: var(--bg-tertiary);
         color: var(--text-primary);
+        border: 1px solid var(--border-light);
+        border-bottom-left-radius: 4px;
       }
 
-      /* Mobile-First Responsive Design */
+      .message-time {
+        font-size: 10px;
+        color: var(--text-muted);
+        margin-top: var(--spacing-xs);
+      }
+
+      .chat-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        gap: var(--spacing-md);
+        color: var(--text-muted);
+      }
+
+      .chat-empty-icon {
+        font-size: 48px;
+        opacity: 0.5;
+      }
+
+      .chat-empty-text {
+        font-size: 14px;
+        text-align: center;
+      }
+
+      /* Chat Input Area */
+      .chat-input-wrapper {
+        padding: var(--spacing-lg);
+        border-top: 1px solid var(--border-light);
+        background: var(--bg-tertiary);
+      }
+
+      .chat-input-container {
+        display: flex;
+        gap: var(--spacing-sm);
+        align-items: flex-end;
+      }
+
+      .chat-input {
+        flex: 1;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-md);
+        padding: var(--spacing-sm) var(--spacing-md);
+        color: var(--text-primary);
+        font-size: 14px;
+        font-family: var(--font-primary);
+        resize: none;
+        min-height: 40px;
+        max-height: 120px;
+        line-height: 1.4;
+        transition: all 0.2s ease;
+      }
+
+      .chat-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        background: var(--bg-primary);
+      }
+
+      .chat-input::placeholder {
+        color: var(--text-muted);
+      }
+
+      .chat-send-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--radius-md);
+        border: none;
+        background: var(--primary);
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+      }
+
+      .chat-send-btn:hover {
+        background: var(--primary-light);
+        transform: scale(1.05);
+      }
+
+      .chat-send-btn:active {
+        transform: scale(0.95);
+      }
+
+      .chat-send-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      /* Responsive Design - Mobile & Tablet */
+      @media (max-width: 1200px) {
+        main {
+          grid-template-columns: 1fr 1fr 350px; /* Narrower chat on tablets */
+        }
+      }
+
+      @media (max-width: 968px) {
+        main {
+          grid-template-columns: 1fr 300px; /* Two videos stacked, chat sidebar */
+          grid-template-rows: 1fr 1fr;
+        }
+
+        .video-panel:nth-child(1) {
+          grid-row: 1;
+        }
+
+        .video-panel:nth-child(2) {
+          grid-row: 2;
+        }
+
+        .chat-panel {
+          grid-column: 2;
+          grid-row: 1 / 3; /* Span both rows */
+        }
+      }
+
       @media (max-width: 768px) {
         :root {
           --spacing-lg: 16px;
@@ -601,23 +759,24 @@
         }
 
         main {
-          flex-direction: column;
-          padding-top: 65px;
+          grid-template-columns: 1fr;
+          grid-template-rows: 1fr 1fr 300px; /* Videos on top, chat below */
         }
 
         .video-panel {
-          border-right: none;
           border-bottom: 1px solid var(--border-light);
         }
 
-        .video-panel:last-child {
-          border-bottom: none;
+        .chat-panel {
+          grid-column: 1;
+          grid-row: 3;
+          border-left: none;
+          border-top: 1px solid var(--border-light);
         }
 
         .control-bar {
           gap: var(--spacing-md);
           padding: var(--spacing-lg);
-          flex-wrap: wrap;
         }
 
         .control-btn {
@@ -636,13 +795,6 @@
           width: 52px;
           height: 52px;
           font-size: 18px;
-        }
-
-        .log-panel {
-          width: calc(100% - 32px);
-          left: var(--spacing-md);
-          bottom: 110px;
-          max-height: 120px;
         }
 
         .video-label {
@@ -678,11 +830,12 @@
           font-size: 13px;
         }
 
-        .log-panel {
-          left: 12px;
-          right: 12px;
-          width: auto;
-          bottom: 100px;
+        .chat-input-wrapper {
+          padding: var(--spacing-md);
+        }
+
+        .chat-messages {
+          padding: var(--spacing-md);
         }
       }
 
@@ -719,7 +872,7 @@
     </header>
 
     <main>
-      <!-- Your Video Panel (Left Half) -->
+      <!-- Your Video Panel (Left) -->
       <div class="video-panel">
         <video id="local" autoplay playsinline muted></video>
         <div class="video-label you">
@@ -739,7 +892,7 @@
         </div>
       </div>
 
-      <!-- Stranger's Video Panel (Right Half) -->
+      <!-- Stranger's Video Panel (Center) -->
       <div class="video-panel">
         <video id="remote" autoplay playsinline></video>
         <div class="video-label stranger">
@@ -758,16 +911,37 @@
           </div>
         </div>
       </div>
-    </main>
 
-    <!-- Activity Log -->
-    <div class="log-panel">
-      <div class="log-header">
-        <span class="log-header-icon">📋</span>
-        <span>Activity Log</span>
+      <!-- Chat Panel (Right - Zoom Style) -->
+      <div class="chat-panel">
+        <div class="chat-header">
+          <span class="chat-header-icon">💬</span>
+          <span class="chat-title">Chat</span>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+          <div class="chat-empty">
+            <div class="chat-empty-icon">💬</div>
+            <div class="chat-empty-text">Start a conversation with the stranger</div>
+          </div>
+        </div>
+
+        <div class="chat-input-wrapper">
+          <div class="chat-input-container">
+            <textarea 
+              id="chatInput" 
+              class="chat-input" 
+              placeholder="Type a message..." 
+              rows="1"
+              disabled
+            ></textarea>
+            <button id="chatSendBtn" class="chat-send-btn" disabled>
+              📤
+            </button>
+          </div>
+        </div>
       </div>
-      <div class="log-container" id="log"></div>
-    </div>
+    </main>
 
     <!-- Control Bar -->
     <div class="control-bar">
@@ -813,7 +987,9 @@
       const localStatus = document.getElementById('localStatus');
       const remoteStatus = document.getElementById('remoteStatus');
       const onlineCount = document.getElementById('onlineCount');
-      const logEl = document.getElementById('log');
+      const chatMessages = document.getElementById('chatMessages');
+      const chatInput = document.getElementById('chatInput');
+      const chatSendBtn = document.getElementById('chatSendBtn');
 
       // State
       let pc = null;
@@ -856,25 +1032,68 @@
         }
       ];
 
-      // Enhanced Logging
+      // Console Logging Only
       function log(msg) {
-        const time = new Date().toLocaleTimeString();
-        const entry = document.createElement('div');
-        entry.className = 'log-entry';
-        entry.textContent = `[${time}] ${msg}`;
-
-        const logContainer = logEl;
-        logContainer.insertBefore(entry, logContainer.firstChild);
-
-        // Auto-scroll to top and limit entries
-        if (logContainer.children.length > 25) {
-          logContainer.removeChild(logContainer.lastChild);
-        }
-
-        // Auto-scroll to show latest entry
-        logContainer.scrollTop = 0;
-
         console.log(`[RandomChat] ${msg}`);
+      }
+
+      // Chat Functions
+      function clearChatMessages() {
+        chatMessages.innerHTML = '<div class="chat-empty"><div class="chat-empty-icon">💬</div><div class="chat-empty-text">Start a conversation with the stranger</div></div>';
+      }
+
+      function addChatMessage(sender, message) {
+        // Remove empty state if exists
+        const emptyState = chatMessages.querySelector('.chat-empty');
+        if (emptyState) emptyState.remove();
+
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-message ${sender}`;
+
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        messageDiv.innerHTML = `
+          <div class="message-sender">${sender === 'you' ? 'You' : 'Stranger'}</div>
+          <div class="message-bubble">${escapeHtml(message)}</div>
+          <div class="message-time">${time}</div>
+        `;
+
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to bottom
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      function sendChatMessage() {
+        const message = chatInput.value.trim();
+        if (!message || !roomId || !peerId) return;
+
+        // Add to local chat
+        addChatMessage('you', message);
+
+        // Send via socket
+        socket.emit('chatMessage', { roomId, to: peerId, message });
+
+        // Clear input
+        chatInput.value = '';
+        chatInput.style.height = 'auto';
+        log(`Sent message: "${message}"`);
+      }
+
+      function enableChat() {
+        chatInput.disabled = false;
+        chatSendBtn.disabled = false;
+        chatInput.focus();
+      }
+
+      function disableChat() {
+        chatInput.disabled = true;
+        chatSendBtn.disabled = true;
+        chatInput.value = '';
       }
 
       // UI Updates
@@ -886,7 +1105,7 @@
           stopBtn.disabled = true;
           muteBtn.disabled = true;
           videoBtn.disabled = true;
-          
+
           localOverlay.classList.remove('hidden');
           localOverlay.innerHTML = '<div class="overlay-icon">📹</div><div class="overlay-content"><div class="overlay-title">Your Camera</div><div class="overlay-subtitle">Click "Start" to begin your video chat journey</div></div>';
           localStatus.textContent = 'Camera Off';
@@ -896,6 +1115,10 @@
           remoteOverlay.innerHTML = '<div class="overlay-icon">👋</div><div class="overlay-content"><div class="overlay-title">Waiting for Stranger</div><div class="overlay-subtitle">Press Start to find someone to connect with</div></div>';
           remoteStatus.textContent = 'Waiting...';
           remoteStatus.className = 'status-indicator';
+
+          // Disable chat
+          disableChat();
+          clearChatMessages();
           
         } else if (state === 'searching') {
           startBtn.disabled = true;
@@ -943,6 +1166,9 @@
           remoteOverlay.classList.add('hidden');
           remoteStatus.textContent = '🟢 Connected';
           remoteStatus.className = 'status-indicator connected';
+
+          // Enable chat when connected
+          enableChat();
         }
       }
 
@@ -1049,6 +1275,7 @@
         peerId = null;
         isSearching = false;
         isConnected = false;
+        disableChat();
       }
 
       // Socket events
@@ -1116,9 +1343,16 @@
       socket.on('peerLeft', () => {
         log('Stranger disconnected');
         cleanup();
+        clearChatMessages();
         updateUI('searching');
         // Auto-find next
         socket.emit('findMatch');
+      });
+
+      // Chat message received
+      socket.on('chatMessage', ({ from, message }) => {
+        log(`Received message from stranger: "${message}"`);
+        addChatMessage('stranger', message);
       });
 
       // Toggle Mute
@@ -1182,11 +1416,32 @@
         log('Stopped');
         socket.emit('leave');
         cleanup();
+        clearChatMessages();
         updateUI('idle');
       };
 
+      // Chat send button
+      chatSendBtn.onclick = () => {
+        sendChatMessage();
+      };
+
+      // Chat input - Send on Enter (but Shift+Enter for new line)
+      chatInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendChatMessage();
+        }
+      });
+
+      // Auto-resize textarea as user types
+      chatInput.addEventListener('input', () => {
+        chatInput.style.height = 'auto';
+        chatInput.style.height = chatInput.scrollHeight + 'px';
+      });
+
       // Initialize
       updateUI('idle');
+      disableChat();
       log('✅ Ready! Click "Start" to begin');
     </script>
   </body>

@@ -67,6 +67,17 @@ io.on('connection', (socket) => {
     console.log(`[SIGNAL] ${data.type || 'ICE'} from ${peerId} to ${to}`);
   });
 
+  socket.on('chatMessage', (payload) => {
+    const { roomId, to, message } = payload || {};
+    const room = rooms.get(roomId);
+    if (!room) {
+      console.log(`[CHAT] Invalid room ${roomId}`);
+      return;
+    }
+    io.to(to).emit('chatMessage', { from: peerId, message });
+    console.log(`[CHAT] Message from ${peerId} to ${to}: "${message}"`);
+  });
+
   socket.on('leave', () => {
     const roomId = peerToRoom.get(peerId);
     if (!roomId) return;
