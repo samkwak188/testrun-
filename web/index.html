@@ -3,137 +3,315 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>RandomChat - Talk to Strangers</title>
+    <title>RandomChat - Connect with Strangers</title>
     <style>
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      body { 
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-        background: #000;
-        color: #fff;
+      :root {
+        /* Modern Color Palette */
+        --bg-primary: #0a0a0b;
+        --bg-secondary: #0f0f10;
+        --bg-tertiary: #1a1a1b;
+        --surface: #ffffff;
+        --surface-elevated: #f8fafc;
+        --text-primary: #f1f5f9;
+        --text-secondary: #cbd5e1;
+        --text-muted: #94a3b8;
+        --border: #1e293b;
+        --border-light: #334155;
+
+        /* Accent Colors */
+        --primary: #6366f1;
+        --primary-light: #8b5cf6;
+        --primary-dark: #4f46e5;
+        --success: #10b981;
+        --success-light: #34d399;
+        --warning: #f59e0b;
+        --error: #ef4444;
+        --error-light: #f87171;
+
+        /* Glass morphism */
+        --glass-bg: rgba(255, 255, 255, 0.08);
+        --glass-border: rgba(255, 255, 255, 0.12);
+        --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+        /* Spacing */
+        --spacing-xs: 4px;
+        --spacing-sm: 8px;
+        --spacing-md: 16px;
+        --spacing-lg: 24px;
+        --spacing-xl: 32px;
+
+        /* Border radius */
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
+        --radius-xl: 24px;
+
+        /* Typography */
+        --font-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        --font-mono: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: var(--font-primary);
+        background:
+          radial-gradient(600px 400px at 20% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+          radial-gradient(800px 600px at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+          linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+        color: var(--text-primary);
         height: 100vh;
         overflow: hidden;
+        line-height: 1.5;
       }
       
-      /* Header */
-      header { 
-        background: rgba(0,0,0,0.95);
-        backdrop-filter: blur(10px);
-        padding: 12px 20px;
+      /* Header - Modern Glass Design */
+      header {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--glass-border);
+        padding: var(--spacing-md) var(--spacing-lg);
         display: flex;
         align-items: center;
         justify-content: space-between;
-        border-bottom: 1px solid #333;
         position: fixed;
         top: 0;
         left: 0;
         right: 0;
         z-index: 200;
-      }
-      .logo { 
-        display: flex; 
-        align-items: center; 
-        gap: 10px;
-        font-size: 20px;
-        font-weight: 700;
-      }
-      .status-badge { 
-        display: flex; 
-        align-items: center; 
-        gap: 6px;
-        background: rgba(74, 222, 128, 0.1);
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 13px;
-        color: #4ade80;
-      }
-      .status-dot { 
-        width: 6px; 
-        height: 6px; 
-        background: #4ade80; 
-        border-radius: 50%;
-        animation: pulse 2s infinite;
-      }
-      @keyframes pulse {
-        0%, 100% { opacity: 1; transform: scale(1); }
-        50% { opacity: 0.5; transform: scale(1.2); }
+        box-shadow: var(--glass-shadow);
       }
 
-      /* Main Video Area - Split Screen */
-      main { 
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text-primary);
+        letter-spacing: -0.025em;
+      }
+
+      .logo-icon {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        width: 32px;
+        height: 32px;
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+      }
+
+      .status-badge {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: 999px;
+        font-size: 13px;
+        color: var(--success-light);
+        font-weight: 500;
+      }
+
+      .status-dot {
+        width: 6px;
+        height: 6px;
+        background: var(--success);
+        border-radius: 50%;
+        animation: pulse-glow 2s ease-in-out infinite;
+      }
+
+      @keyframes pulse-glow {
+        0%, 100% {
+          opacity: 1;
+          transform: scale(1);
+          box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        }
+        50% {
+          opacity: 0.8;
+          transform: scale(1.1);
+          box-shadow: 0 0 0 4px rgba(16, 185, 129, 0);
+        }
+      }
+
+      /* Main Video Area - Modern Split Screen */
+      main {
         display: flex;
         height: 100vh;
-        padding-top: 49px;
-        background: #000;
+        padding-top: 73px; /* Adjusted for new header height */
+        background: transparent;
       }
-      
-      /* Video Containers - Equal Split */
+
+      /* Video Containers - Elegant Split */
       .video-panel {
         flex: 1;
         position: relative;
-        background: #000;
-        border-right: 1px solid #222;
+        background: var(--bg-secondary);
+        border-right: 1px solid var(--border-light);
+        overflow: hidden;
       }
+
       .video-panel:last-child {
         border-right: none;
+      }
+
+      .video-panel::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+          45deg,
+          rgba(99, 102, 241, 0.05) 0%,
+          transparent 50%,
+          rgba(139, 92, 246, 0.05) 100%
+        );
+        pointer-events: none;
+        z-index: 1;
       }
 
       video {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        background: #000;
+        background: var(--bg-primary);
+        transition: opacity 0.3s ease;
       }
 
-      /* Video Labels */
+      /* Modern Video Labels */
       .video-label {
         position: absolute;
-        top: 16px;
-        left: 16px;
-        background: rgba(0,0,0,0.7);
-        backdrop-filter: blur(10px);
-        padding: 8px 16px;
-        border-radius: 8px;
+        top: var(--spacing-lg);
+        left: var(--spacing-lg);
+        background: var(--glass-bg);
+        backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border);
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: var(--radius-lg);
         font-size: 14px;
         font-weight: 600;
         z-index: 10;
         display: flex;
         align-items: center;
-        gap: 8px;
-      }
-      .video-label.you {
-        background: rgba(102, 126, 234, 0.7);
-      }
-      .video-label.stranger {
-        background: rgba(239, 68, 68, 0.7);
+        gap: var(--spacing-xs);
+        box-shadow: var(--glass-shadow);
+        transition: all 0.2s ease;
       }
 
-      /* Status Indicators on Videos */
+      .video-label:hover {
+        transform: translateY(-2px);
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      .video-label.you {
+        color: var(--primary-light);
+        border-color: rgba(99, 102, 241, 0.3);
+      }
+
+      .video-label.stranger {
+        color: var(--error-light);
+        border-color: rgba(239, 68, 68, 0.3);
+      }
+
+      .label-icon {
+        font-size: 16px;
+      }
+
+      .label-text {
+        font-weight: 500;
+      }
+
+      /* Modern Status Indicators */
       .status-indicator {
         position: absolute;
-        top: 16px;
-        right: 16px;
-        background: rgba(0,0,0,0.7);
-        backdrop-filter: blur(10px);
-        padding: 6px 12px;
-        border-radius: 6px;
+        top: var(--spacing-lg);
+        right: var(--spacing-lg);
+        background: var(--glass-bg);
+        backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border);
+        padding: var(--spacing-xs) var(--spacing-md);
+        border-radius: var(--radius-lg);
         font-size: 12px;
+        font-weight: 500;
         z-index: 10;
-      }
-      .status-indicator.connected {
-        background: rgba(34, 197, 94, 0.7);
-        color: #4ade80;
-      }
-      .status-indicator.searching {
-        background: rgba(251, 146, 60, 0.7);
-        color: #fb923c;
-        animation: blink 1.5s infinite;
-      }
-      @keyframes blink {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
+        box-shadow: var(--glass-shadow);
+        transition: all 0.2s ease;
       }
 
-      /* Status Overlays */
+      .status-indicator:hover {
+        transform: translateY(-2px);
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      .status-indicator.connected {
+        background: rgba(16, 185, 129, 0.15);
+        border-color: rgba(16, 185, 129, 0.3);
+        color: var(--success-light);
+      }
+
+      .status-indicator.searching {
+        background: rgba(245, 158, 11, 0.15);
+        border-color: rgba(245, 158, 11, 0.3);
+        color: var(--warning);
+        animation: pulse-status 2s ease-in-out infinite;
+      }
+
+      .status-indicator.idle {
+        background: rgba(148, 163, 184, 0.15);
+        border-color: rgba(148, 163, 184, 0.3);
+        color: var(--text-muted);
+      }
+
+      @keyframes pulse-status {
+        0%, 100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.8;
+          transform: scale(1.05);
+        }
+      }
+
+      .status-dot {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        margin-right: var(--spacing-xs);
+      }
+
+      .status-dot.connected {
+        background: var(--success);
+        animation: pulse-dot 2s ease-in-out infinite;
+      }
+
+      .status-dot.searching {
+        background: var(--warning);
+        animation: pulse-dot 1.5s ease-in-out infinite;
+      }
+
+      @keyframes pulse-dot {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+      }
+
+      /* Elegant Status Overlays */
       .video-overlay {
         position: absolute;
         inset: 0;
@@ -141,199 +319,402 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        background: rgba(0,0,0,0.7);
-        backdrop-filter: blur(10px);
+        background:
+          radial-gradient(50% 50% at 50% 50%, rgba(15, 15, 16, 0.8) 0%, rgba(10, 10, 11, 0.95) 100%);
+        backdrop-filter: blur(20px);
         z-index: 5;
-        gap: 16px;
-      }
-      .video-overlay.hidden { display: none; }
-      .overlay-icon { 
-        font-size: 64px; 
-        animation: bounce 1.5s ease-in-out infinite;
-      }
-      @keyframes bounce {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-15px); }
-      }
-      .overlay-text {
-        font-size: 20px;
-        font-weight: 600;
-        text-align: center;
-      }
-      .overlay-subtext {
-        font-size: 14px;
-        opacity: 0.8;
-        text-align: center;
-        max-width: 300px;
+        gap: var(--spacing-lg);
+        transition: opacity 0.3s ease;
       }
 
-      /* Bottom Control Bar */
+      .video-overlay.hidden {
+        display: none;
+      }
+
+      .overlay-icon {
+        font-size: 80px;
+        opacity: 0.8;
+        animation: float 3s ease-in-out infinite;
+        color: var(--primary-light);
+      }
+
+      @keyframes float {
+        0%, 100% {
+          transform: translateY(0px) rotate(0deg);
+        }
+        50% {
+          transform: translateY(-10px) rotate(2deg);
+        }
+      }
+
+      .overlay-content {
+        text-align: center;
+        max-width: 320px;
+      }
+
+      .overlay-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: var(--spacing-sm);
+        letter-spacing: -0.025em;
+      }
+
+      .overlay-subtitle {
+        font-size: 16px;
+        color: var(--text-secondary);
+        opacity: 0.9;
+        line-height: 1.4;
+      }
+
+      .overlay-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(255, 255, 255, 0.1);
+        border-top: 3px solid var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: var(--spacing-md);
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      /* Modern Control Bar */
       .control-bar {
         position: fixed;
         bottom: 0;
         left: 0;
         right: 0;
-        padding: 24px;
-        background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 70%, transparent 100%);
-        backdrop-filter: blur(10px);
+        padding: var(--spacing-xl);
+        background:
+          linear-gradient(to top,
+            rgba(10, 10, 11, 0.95) 0%,
+            rgba(10, 10, 11, 0.8) 50%,
+            rgba(10, 10, 11, 0.4) 80%,
+            transparent 100%
+          );
+        backdrop-filter: blur(20px);
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 16px;
+        gap: var(--spacing-lg);
         z-index: 150;
+        border-top: 1px solid var(--glass-border);
       }
-      
+
       .control-btn {
         width: 56px;
         height: 56px;
         border-radius: 50%;
         border: none;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 24px;
+        font-size: 22px;
         position: relative;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
       }
+
       .control-btn:hover {
-        transform: scale(1.1);
-        box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
       }
+
       .control-btn:active {
-        transform: scale(0.95);
+        transform: translateY(0) scale(0.98);
       }
+
       .control-btn:disabled {
-        opacity: 0.3;
+        opacity: 0.4;
         cursor: not-allowed;
         transform: none;
       }
-      
+
       .btn-start {
-        background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
-        width: 160px;
-        border-radius: 28px;
+        background: linear-gradient(135deg, var(--success) 0%, var(--success-light) 100%);
+        width: 180px;
+        height: 48px;
+        border-radius: var(--radius-xl);
         font-size: 16px;
         font-weight: 600;
         color: white;
-        gap: 8px;
+        gap: var(--spacing-sm);
+        box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
       }
+
+      .btn-start:hover {
+        box-shadow: 0 6px 25px rgba(16, 185, 129, 0.4);
+        transform: translateY(-2px);
+      }
+
       .btn-next {
-        background: #3b82f6;
+        background: var(--primary);
         color: white;
+        border: 2px solid transparent;
+        box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
       }
+
+      .btn-next:hover {
+        background: var(--primary-light);
+        box-shadow: 0 6px 25px rgba(99, 102, 241, 0.4);
+      }
+
       .btn-stop {
-        background: #ef4444;
+        background: var(--error);
         color: white;
         width: 64px;
         height: 64px;
-      }
-      .btn-mute, .btn-video {
-        background: rgba(255,255,255,0.2);
-        backdrop-filter: blur(10px);
-        color: white;
-        border: 2px solid rgba(255,255,255,0.3);
-      }
-      .btn-mute.active, .btn-video.active {
-        background: #ef4444;
-        border-color: #dc2626;
+        font-size: 20px;
+        box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);
       }
 
-      /* Tooltip */
+      .btn-stop:hover {
+        background: var(--error-light);
+        box-shadow: 0 6px 25px rgba(239, 68, 68, 0.4);
+      }
+
+      .btn-mute, .btn-video {
+        background: var(--glass-bg);
+        border: 2px solid var(--glass-border);
+        color: var(--text-primary);
+        backdrop-filter: blur(10px);
+      }
+
+      .btn-mute:hover, .btn-video:hover {
+        background: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+      }
+
+      .btn-mute.active, .btn-video.active {
+        background: var(--error);
+        border-color: var(--error-light);
+        color: white;
+      }
+
+      /* Modern Tooltips */
       .tooltip {
         position: absolute;
         bottom: 70px;
-        background: rgba(0,0,0,0.9);
-        padding: 8px 12px;
-        border-radius: 6px;
+        background: var(--bg-tertiary);
+        backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border);
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: var(--radius-sm);
         font-size: 12px;
+        font-weight: 500;
         white-space: nowrap;
         pointer-events: none;
         opacity: 0;
-        transition: opacity 0.2s;
-        border: 1px solid rgba(255,255,255,0.2);
+        transition: all 0.2s ease;
+        box-shadow: var(--glass-shadow);
+        color: var(--text-primary);
       }
+
       .control-btn:hover .tooltip {
         opacity: 1;
+        transform: translateY(-4px);
       }
 
-      /* Activity Log */
+      /* Elegant Activity Log */
       .log-panel {
         position: fixed;
-        bottom: 110px;
-        left: 20px;
-        width: 300px;
-        max-height: 180px;
-        background: rgba(0,0,0,0.85);
-        backdrop-filter: blur(10px);
-        border-radius: 12px;
-        padding: 12px;
+        bottom: 130px;
+        left: var(--spacing-lg);
+        width: 320px;
+        max-height: 200px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-md);
         z-index: 140;
-        overflow: auto;
-        border: 1px solid rgba(255,255,255,0.1);
-      }
-      .log-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 8px;
-        font-size: 12px;
-        font-weight: 600;
-        opacity: 0.8;
-        padding-bottom: 8px;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-      }
-      .log-entry {
-        font-size: 11px;
-        font-family: 'Courier New', monospace;
-        padding: 4px 0;
-        opacity: 0.7;
+        overflow: hidden;
+        box-shadow: var(--glass-shadow);
       }
 
-      /* Responsive - Stack vertically on mobile */
+      .log-header {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        margin-bottom: var(--spacing-md);
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-primary);
+        padding-bottom: var(--spacing-sm);
+        border-bottom: 1px solid var(--border-light);
+      }
+
+      .log-header-icon {
+        font-size: 16px;
+      }
+
+      .log-container {
+        max-height: 140px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) transparent;
+      }
+
+      .log-container::-webkit-scrollbar {
+        width: 4px;
+      }
+
+      .log-container::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      .log-container::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 2px;
+      }
+
+      .log-entry {
+        font-size: 11px;
+        font-family: var(--font-mono);
+        padding: var(--spacing-xs) 0;
+        color: var(--text-secondary);
+        border-bottom: 1px solid rgba(30, 41, 59, 0.1);
+        line-height: 1.3;
+        transition: color 0.2s ease;
+      }
+
+      .log-entry:last-child {
+        border-bottom: none;
+      }
+
+      .log-entry:hover {
+        color: var(--text-primary);
+      }
+
+      /* Mobile-First Responsive Design */
       @media (max-width: 768px) {
+        :root {
+          --spacing-lg: 16px;
+          --spacing-xl: 20px;
+        }
+
         main {
           flex-direction: column;
+          padding-top: 65px;
         }
+
         .video-panel {
           border-right: none;
-          border-bottom: 1px solid #222;
+          border-bottom: 1px solid var(--border-light);
         }
+
         .video-panel:last-child {
           border-bottom: none;
         }
+
         .control-bar {
-          gap: 12px;
-          padding: 16px;
+          gap: var(--spacing-md);
+          padding: var(--spacing-lg);
+          flex-wrap: wrap;
         }
+
         .control-btn {
           width: 48px;
           height: 48px;
-          font-size: 20px;
+          font-size: 18px;
         }
+
         .btn-start {
-          width: 120px;
+          width: 140px;
+          height: 44px;
           font-size: 14px;
         }
+
         .btn-stop {
-          width: 56px;
-          height: 56px;
+          width: 52px;
+          height: 52px;
+          font-size: 18px;
         }
+
         .log-panel {
-          width: calc(100% - 40px);
-          left: 20px;
-          bottom: 90px;
+          width: calc(100% - 32px);
+          left: var(--spacing-md);
+          bottom: 110px;
+          max-height: 120px;
+        }
+
+        .video-label {
+          font-size: 13px;
+          padding: 6px 12px;
+        }
+
+        .status-indicator {
+          font-size: 11px;
+          padding: 4px 8px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .logo {
+          font-size: 18px;
+        }
+
+        .control-bar {
+          padding: var(--spacing-md);
+          gap: var(--spacing-sm);
+        }
+
+        .control-btn {
+          width: 44px;
+          height: 44px;
+          font-size: 16px;
+        }
+
+        .btn-start {
+          width: 120px;
+          height: 40px;
+          font-size: 13px;
+        }
+
+        .log-panel {
+          left: 12px;
+          right: 12px;
+          width: auto;
+          bottom: 100px;
+        }
+      }
+
+      /* High contrast mode support */
+      @media (prefers-contrast: high) {
+        :root {
+          --glass-bg: rgba(0, 0, 0, 0.8);
+          --glass-border: rgba(255, 255, 255, 0.3);
+        }
+      }
+
+      /* Reduced motion support */
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
         }
       }
     </style>
   </head>
   <body>
     <header>
-      <div class="logo">🎥 RandomChat</div>
-      <div class="status-badge">
-        <div class="status-dot"></div>
-        <span id="onlineCount">Connecting...</span>
+      <div class="logo">
+        <div class="logo-icon">🎥</div>
+        <span>RandomChat</span>
+      </div>
+      <div class="header-right">
+        <div class="status-badge">
+          <div class="status-dot"></div>
+          <span id="onlineCount">Connecting...</span>
+        </div>
       </div>
     </header>
 
@@ -341,24 +722,40 @@
       <!-- Your Video Panel (Left Half) -->
       <div class="video-panel">
         <video id="local" autoplay playsinline muted></video>
-        <div class="video-label you">👤 You</div>
-        <div class="status-indicator" id="localStatus">Camera Off</div>
+        <div class="video-label you">
+          <span class="label-icon">👤</span>
+          <span class="label-text">You</span>
+        </div>
+        <div class="status-indicator idle" id="localStatus">
+          <span class="status-dot"></span>
+          Camera Off
+        </div>
         <div class="video-overlay" id="localOverlay">
           <div class="overlay-icon">📹</div>
-          <div class="overlay-text">Your Camera</div>
-          <div class="overlay-subtext">Click "Start" to begin</div>
+          <div class="overlay-content">
+            <div class="overlay-title">Your Camera</div>
+            <div class="overlay-subtitle">Click "Start" to begin your video chat journey</div>
+          </div>
         </div>
       </div>
 
       <!-- Stranger's Video Panel (Right Half) -->
       <div class="video-panel">
         <video id="remote" autoplay playsinline></video>
-        <div class="video-label stranger">🌍 Stranger</div>
-        <div class="status-indicator searching" id="remoteStatus">Waiting...</div>
+        <div class="video-label stranger">
+          <span class="label-icon">🌍</span>
+          <span class="label-text">Stranger</span>
+        </div>
+        <div class="status-indicator searching" id="remoteStatus">
+          <span class="status-dot searching"></span>
+          Waiting...
+        </div>
         <div class="video-overlay" id="remoteOverlay">
           <div class="overlay-icon">👋</div>
-          <div class="overlay-text">Waiting for Stranger</div>
-          <div class="overlay-subtext">Press Start to find someone</div>
+          <div class="overlay-content">
+            <div class="overlay-title">Waiting for Stranger</div>
+            <div class="overlay-subtitle">Press Start to find someone to connect with</div>
+          </div>
         </div>
       </div>
     </main>
@@ -366,9 +763,10 @@
     <!-- Activity Log -->
     <div class="log-panel">
       <div class="log-header">
-        <span>📋 Activity Log</span>
+        <span class="log-header-icon">📋</span>
+        <span>Activity Log</span>
       </div>
-      <div id="log"></div>
+      <div class="log-container" id="log"></div>
     </div>
 
     <!-- Control Bar -->
@@ -458,15 +856,25 @@
         }
       ];
 
-      // Logging
+      // Enhanced Logging
       function log(msg) {
         const time = new Date().toLocaleTimeString();
         const entry = document.createElement('div');
         entry.className = 'log-entry';
         entry.textContent = `[${time}] ${msg}`;
-        logEl.insertBefore(entry, logEl.firstChild);
-        if (logEl.children.length > 20) logEl.removeChild(logEl.lastChild);
-        console.log(msg);
+
+        const logContainer = logEl;
+        logContainer.insertBefore(entry, logContainer.firstChild);
+
+        // Auto-scroll to top and limit entries
+        if (logContainer.children.length > 25) {
+          logContainer.removeChild(logContainer.lastChild);
+        }
+
+        // Auto-scroll to show latest entry
+        logContainer.scrollTop = 0;
+
+        console.log(`[RandomChat] ${msg}`);
       }
 
       // UI Updates
@@ -480,12 +888,12 @@
           videoBtn.disabled = true;
           
           localOverlay.classList.remove('hidden');
-          localOverlay.innerHTML = '<div class="overlay-icon">📹</div><div class="overlay-text">Your Camera</div><div class="overlay-subtext">Click "Start" to begin</div>';
+          localOverlay.innerHTML = '<div class="overlay-icon">📹</div><div class="overlay-content"><div class="overlay-title">Your Camera</div><div class="overlay-subtitle">Click "Start" to begin your video chat journey</div></div>';
           localStatus.textContent = 'Camera Off';
-          localStatus.className = 'status-indicator';
-          
+          localStatus.className = 'status-indicator idle';
+
           remoteOverlay.classList.remove('hidden');
-          remoteOverlay.innerHTML = '<div class="overlay-icon">👋</div><div class="overlay-text">Waiting for Stranger</div><div class="overlay-subtext">Press Start to find someone</div>';
+          remoteOverlay.innerHTML = '<div class="overlay-icon">👋</div><div class="overlay-content"><div class="overlay-title">Waiting for Stranger</div><div class="overlay-subtitle">Press Start to find someone to connect with</div></div>';
           remoteStatus.textContent = 'Waiting...';
           remoteStatus.className = 'status-indicator';
           
@@ -501,7 +909,7 @@
           localStatus.className = 'status-indicator connected';
           
           remoteOverlay.classList.remove('hidden');
-          remoteOverlay.innerHTML = '<div class="overlay-icon">🔍</div><div class="overlay-text">Searching...</div><div class="overlay-subtext">Finding a stranger for you</div>';
+          remoteOverlay.innerHTML = '<div class="overlay-icon">🔍</div><div class="overlay-content"><div class="overlay-title">Searching...</div><div class="overlay-subtitle">Finding a stranger for you</div></div>';
           remoteStatus.textContent = 'Searching...';
           remoteStatus.className = 'status-indicator searching';
           
@@ -517,21 +925,21 @@
           localStatus.className = 'status-indicator connected';
           
           remoteOverlay.classList.remove('hidden');
-          remoteOverlay.innerHTML = '<div class="overlay-icon">🤝</div><div class="overlay-text">Stranger Found!</div><div class="overlay-subtext">Connecting...</div>';
+          remoteOverlay.innerHTML = '<div class="overlay-icon">🤝</div><div class="overlay-content"><div class="overlay-title">Stranger Found!</div><div class="overlay-subtitle">Connecting...</div></div>';
           remoteStatus.textContent = 'Connecting...';
           remoteStatus.className = 'status-indicator searching';
-          
+
         } else if (state === 'connected') {
           startBtn.disabled = true;
           nextBtn.disabled = false;
           stopBtn.disabled = false;
           muteBtn.disabled = false;
           videoBtn.disabled = false;
-          
+
           localOverlay.classList.add('hidden');
           localStatus.textContent = 'Camera On';
           localStatus.className = 'status-indicator connected';
-          
+
           remoteOverlay.classList.add('hidden');
           remoteStatus.textContent = '🟢 Connected';
           remoteStatus.className = 'status-indicator connected';
