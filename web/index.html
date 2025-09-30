@@ -557,6 +557,8 @@
             audio: true 
           });
           localVideo.srcObject = localStream;
+          localVideo.muted = true; // Ensure you never hear yourself
+          localVideo.volume = 0; // Double ensure no audio feedback
           log('Camera and microphone enabled');
           return localStream;
         } catch (videoErr) {
@@ -570,6 +572,8 @@
               audio: true 
             });
             localVideo.srcObject = localStream;
+            localVideo.muted = true; // Ensure you never hear yourself
+            localVideo.volume = 0; // Double ensure no audio feedback
             
             // Show audio-only indicator in overlay
             log('⚠️ Audio-only mode active');
