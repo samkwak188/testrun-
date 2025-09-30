@@ -1122,13 +1122,14 @@
 
       // UI Updates
       function updateUI(state) {
+        log(`🔄 UI Update: ${state} (isConnected: ${isConnected}, isSearching: ${isSearching})`);
+        
         if (state === 'idle') {
           startBtn.disabled = false;
           startBtn.innerHTML = '<span>🚀</span> Start';
           nextBtn.disabled = true;
           stopBtn.disabled = true;
           muteBtn.disabled = true;
-          videoBtn.disabled = true;
 
           localOverlay.classList.remove('hidden');
           localOverlay.innerHTML = '<div class="overlay-icon">📹</div><div class="overlay-content"><div class="overlay-title">Your Camera</div><div class="overlay-subtitle">Click "Start" to begin your video chat journey</div></div>';
@@ -1149,7 +1150,6 @@
           nextBtn.disabled = false;
           stopBtn.disabled = false;
           muteBtn.disabled = false;
-          videoBtn.disabled = false;
           
           localOverlay.classList.add('hidden');
           localStatus.textContent = 'Camera On';
@@ -1261,17 +1261,43 @@
         pc.ontrack = (e) => {
           log('Received remote stream');
           remoteVideo.srcObject = e.streams[0];
-          updateUI('connected');
           isConnected = true;
+          updateUI('connected');
+        };
+
+        // Monitor connection state changes
+        pc.oniceconnectionstatechange = () => {
+          log(`ICE Connection State: ${pc.iceConnectionState}`);
+          if (pc.iceConnectionState === 'disconnected' || 
+              pc.iceConnectionState === 'failed' || 
+              pc.iceConnectionState === 'closed') {
+            log('Connection lost, cleaning up...');
+            isConnected = false;
+            if (remoteVideo.srcObject) {
+              remoteVideo.srcObject.getTracks().forEach(track => track.stop());
+              remoteVideo.srcObject = null;
+            }
+            updateUI('idle');
+          }
         };
 
         pc.onconnectionstatechange = () => {
           log(`Connection state: ${pc.connectionState}`);
           if (pc.connectionState === 'connected') {
-            updateUI('connected');
             isConnected = true;
-          } else if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
-            log('Connection failed, try Next');
+            updateUI('connected');
+          } else if (pc.connectionState === 'failed' || 
+                     pc.connectionState === 'disconnected' || 
+                     pc.connectionState === 'closed') {
+            log('Connection lost, cleaning up...');
+            isConnected = false;
+            if (remoteVideo.srcObject) {
+              remoteVideo.srcObject.getTracks().forEach(track => track.stop());
+              remoteVideo.srcObject = null;
+            }
+            clearChatMessages();
+            disableChat();
+            updateUI('idle');
           }
         };
 
@@ -1407,10 +1433,18 @@
         
         clearChatMessages();
         disableChat();
-        updateUI('searching');
         
-        // Auto-find next
-        socket.emit('findMatch');
+        // Show proper disconnected state
+        updateUI('idle');
+        
+        // Auto-find next after a brief delay
+        setTimeout(() => {
+          if (!isConnected && !isSearching) {
+            socket.emit('findMatch');
+            isSearching = true;
+            updateUI('searching');
+          }
+        }, 1000);
       });
 
       // Chat message received
@@ -1454,8 +1488,27 @@
       nextBtn.onclick = () => {
         log('Finding next stranger...');
         socket.emit('leave');
-        cleanup();
-        clearChatMessages(); // Clear chat when switching to next person
+        
+        // Full cleanup
+        if (pc) {
+          pc.close();
+          pc = null;
+        }
+        if (remoteVideo.srcObject) {
+          remoteVideo.srcObject.getTracks().forEach(track => track.stop());
+          remoteVideo.srcObject = null;
+        }
+        
+        roomId = null;
+        peerId = null;
+        isSearching = false;
+        isConnected = false;
+        
+        clearChatMessages();
+        disableChat();
+        
+        // Show searching state
+        isSearching = true;
         updateUI('searching');
         socket.emit('findMatch');
       };
