@@ -379,12 +379,12 @@
         100% { transform: rotate(360deg); }
       }
 
-      /* Modern Control Bar */
+      /* Auto-Hide Control Bar */
       .control-bar {
         position: fixed;
         bottom: 0;
         left: 0;
-        right: 0;
+        right: calc(400px + 1px); /* Exclude chat column */
         padding: var(--spacing-xl);
         background:
           linear-gradient(to top,
@@ -400,6 +400,12 @@
         gap: var(--spacing-lg);
         z-index: 150;
         border-top: 1px solid var(--glass-border);
+        transform: translateY(0);
+        transition: transform 0.3s ease-in-out;
+      }
+
+      .control-bar.hidden {
+        transform: translateY(100%);
       }
 
       .control-btn {
@@ -655,11 +661,14 @@
         text-align: center;
       }
 
-      /* Chat Input Area */
+      /* Chat Input Area - Fixed at Bottom */
       .chat-input-wrapper {
         padding: var(--spacing-lg);
         border-top: 1px solid var(--border-light);
         background: var(--bg-tertiary);
+        position: sticky;
+        bottom: 0;
+        z-index: 10;
       }
 
       .chat-input-container {
@@ -673,14 +682,14 @@
         background: var(--bg-secondary);
         border: 1px solid var(--border-light);
         border-radius: var(--radius-md);
-        padding: var(--spacing-sm) var(--spacing-md);
+        padding: 10px 14px;
         color: var(--text-primary);
         font-size: 14px;
         font-family: var(--font-primary);
-        resize: none;
-        min-height: 40px;
+        resize: vertical;
+        min-height: 42px;
         max-height: 120px;
-        line-height: 1.4;
+        line-height: 1.5;
         transition: all 0.2s ease;
       }
 
@@ -688,15 +697,22 @@
         outline: none;
         border-color: var(--primary);
         background: var(--bg-primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
       }
 
       .chat-input::placeholder {
         color: var(--text-muted);
       }
 
+      .chat-input:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        background: var(--bg-tertiary);
+      }
+
       .chat-send-btn {
-        width: 40px;
-        height: 40px;
+        width: 42px;
+        height: 42px;
         border-radius: var(--radius-md);
         border: none;
         background: var(--primary);
@@ -710,25 +726,29 @@
         flex-shrink: 0;
       }
 
-      .chat-send-btn:hover {
+      .chat-send-btn:hover:not(:disabled) {
         background: var(--primary-light);
         transform: scale(1.05);
       }
 
-      .chat-send-btn:active {
+      .chat-send-btn:active:not(:disabled) {
         transform: scale(0.95);
       }
 
       .chat-send-btn:disabled {
         opacity: 0.5;
         cursor: not-allowed;
-        transform: none;
+        background: var(--border);
       }
 
       /* Responsive Design - Mobile & Tablet */
       @media (max-width: 1200px) {
         main {
           grid-template-columns: 1fr 1fr 350px; /* Narrower chat on tablets */
+        }
+
+        .control-bar {
+          right: calc(350px + 1px);
         }
       }
 
@@ -750,6 +770,10 @@
           grid-column: 2;
           grid-row: 1 / 3; /* Span both rows */
         }
+
+        .control-bar {
+          right: calc(300px + 1px);
+        }
       }
 
       @media (max-width: 768px) {
@@ -760,7 +784,7 @@
 
         main {
           grid-template-columns: 1fr;
-          grid-template-rows: 1fr 1fr 300px; /* Videos on top, chat below */
+          grid-template-rows: 1fr 1fr 350px; /* Videos on top, chat below */
         }
 
         .video-panel {
@@ -775,6 +799,7 @@
         }
 
         .control-bar {
+          right: 0; /* Full width on mobile */
           gap: var(--spacing-md);
           padding: var(--spacing-lg);
         }
@@ -811,6 +836,10 @@
       @media (max-width: 480px) {
         .logo {
           font-size: 18px;
+        }
+
+        main {
+          grid-template-rows: 1fr 1fr 300px;
         }
 
         .control-bar {
@@ -993,6 +1022,8 @@
       let isSearching = false;
       let isConnected = false;
       let isMuted = false;
+      let controlBarTimeout = null;
+      const controlBar = document.querySelector('.control-bar');
 
       // Socket connection
       const serverUrl = window.location.hostname === 'localhost' || window.location.hostname === ''
@@ -1178,7 +1209,7 @@
           throw new Error('User denied permission');
         }
 
-        // Camera is REQUIRED - no audio-only mode
+        // Try camera + mic, fallback to mic only
         try {
           localStream = await navigator.mediaDevices.getUserMedia({ 
             video: { width: 1280, height: 720 }, 
@@ -1189,10 +1220,26 @@
           localVideo.volume = 0; // Double ensure no audio feedback
           log('Camera and microphone enabled');
           return localStream;
-        } catch (err) {
-          log('Camera/microphone access failed: ' + err.message);
-          alert('Camera access is REQUIRED to use this app.\n\nPlease allow camera and microphone permissions and refresh the page.');
-          throw err;
+        } catch (videoErr) {
+          log('Camera failed, trying audio-only: ' + videoErr.message);
+          
+          // Fallback: Allow audio-only participation
+          try {
+            localStream = await navigator.mediaDevices.getUserMedia({ 
+              video: false, 
+              audio: true 
+            });
+            localVideo.srcObject = localStream;
+            localVideo.muted = true;
+            localVideo.volume = 0;
+            log('Audio-only mode enabled');
+            alert('Camera not detected. You can still join with audio only!');
+            return localStream;
+          } catch (audioErr) {
+            log('Microphone also failed: ' + audioErr.message);
+            alert('Could not access camera or microphone.\n\nPlease allow permissions and refresh the page.');
+            throw audioErr;
+          }
         }
       }
 
@@ -1243,13 +1290,40 @@
           pc.close();
           pc = null;
         }
-        remoteVideo.srcObject = null;
+        if (remoteVideo.srcObject) {
+          remoteVideo.srcObject.getTracks().forEach(track => track.stop());
+          remoteVideo.srcObject = null;
+        }
         roomId = null;
         peerId = null;
         isSearching = false;
         isConnected = false;
         disableChat();
+        log('Cleanup complete');
       }
+
+      // Auto-hide control bar after inactivity
+      function showControlBar() {
+        controlBar.classList.remove('hidden');
+        clearTimeout(controlBarTimeout);
+        controlBarTimeout = setTimeout(() => {
+          if (isConnected || isSearching) {
+            controlBar.classList.add('hidden');
+          }
+        }, 10000); // Hide after 10 seconds of inactivity
+      }
+
+      function hideControlBar() {
+        if (isConnected || isSearching) {
+          controlBar.classList.add('hidden');
+        }
+      }
+
+      // Show controls on mouse movement (video area only)
+      document.querySelectorAll('.video-panel').forEach(panel => {
+        panel.addEventListener('mousemove', showControlBar);
+        panel.addEventListener('touchstart', showControlBar);
+      });
 
       // Socket events
       socket.on('connect', () => {
@@ -1315,9 +1389,26 @@
 
       socket.on('peerLeft', () => {
         log('Stranger disconnected');
-        cleanup();
+        
+        // Full cleanup
+        if (pc) {
+          pc.close();
+          pc = null;
+        }
+        if (remoteVideo.srcObject) {
+          remoteVideo.srcObject.getTracks().forEach(track => track.stop());
+          remoteVideo.srcObject = null;
+        }
+        
+        roomId = null;
+        peerId = null;
+        isSearching = false;
+        isConnected = false;
+        
         clearChatMessages();
+        disableChat();
         updateUI('searching');
+        
         // Auto-find next
         socket.emit('findMatch');
       });
@@ -1372,9 +1463,28 @@
       stopBtn.onclick = () => {
         log('Stopped');
         socket.emit('leave');
-        cleanup();
-        clearChatMessages(); // Clear chat when stopping
+        
+        // Full cleanup
+        if (pc) {
+          pc.close();
+          pc = null;
+        }
+        if (remoteVideo.srcObject) {
+          remoteVideo.srcObject.getTracks().forEach(track => track.stop());
+          remoteVideo.srcObject = null;
+        }
+        
+        roomId = null;
+        peerId = null;
+        isSearching = false;
+        isConnected = false;
+        
+        clearChatMessages();
+        disableChat();
         updateUI('idle');
+        
+        // Show control bar when stopped
+        controlBar.classList.remove('hidden');
       };
 
       // Chat send button
@@ -1395,6 +1505,9 @@
         chatInput.style.height = 'auto';
         chatInput.style.height = chatInput.scrollHeight + 'px';
       });
+
+      // Initialize auto-hide on start
+      showControlBar(); // Start with controls visible
 
       // Initialize
       updateUI('idle');

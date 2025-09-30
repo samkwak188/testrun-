@@ -84,8 +84,13 @@ io.on('connection', (socket) => {
     const room = rooms.get(roomId);
     if (!room) return;
     const other = room.a === peerId ? room.b : room.a;
+    
+    // Notify the other peer
     io.to(other).emit('peerLeft');
-    console.log(`[LEAVE] ${peerId} left room ${roomId}`);
+    
+    console.log(`[LEAVE] ${peerId} left room ${roomId}, notified ${other}`);
+    
+    // Clean up room completely
     rooms.delete(roomId);
     peerToRoom.delete(peerId);
     peerToRoom.delete(other);
